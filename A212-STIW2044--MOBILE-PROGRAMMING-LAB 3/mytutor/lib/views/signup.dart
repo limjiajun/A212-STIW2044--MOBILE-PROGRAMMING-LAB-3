@@ -26,6 +26,7 @@ class _SignUptState extends State<SignUP> {
   final TextEditingController _emailEditingController =
       TextEditingController();
   final TextEditingController _passwordEditingController = TextEditingController();
+   final TextEditingController _phoneEditingController = TextEditingController();
   final TextEditingController _addressEditingController =
       TextEditingController();
   
@@ -37,6 +38,7 @@ class _SignUptState extends State<SignUP> {
     _nameEditingController.dispose();
     _emailEditingController.dispose();
     _passwordEditingController.dispose();
+    _phoneEditingController.dispose();
     _addressEditingController.dispose();
    
     super.dispose();
@@ -146,6 +148,28 @@ class _SignUptState extends State<SignUP> {
                 prefixIcon: const Icon(Icons.lock),
                 labelText: 'Repeat Password',
                 hintText: 'Enter your password',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),const SizedBox(height: 5),
+            TextFormField(
+              controller: _phoneEditingController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your phoneNo';
+                }
+                if (value.length < 11) {
+                  return "PhoneNO must be at least 11 characters";
+                }
+                return null;
+              },
+              maxLines: 1,
+          
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.phone_outlined,),
+                  labelText: 'PhoneNo',
+                hintText: 'Enter your PhoneNo',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -261,14 +285,16 @@ void _insertDialog() {
     String _name = _nameEditingController.text;
     String _email = _emailEditingController.text;
     String _password = _passwordEditingController.text;
+    String _phone = _phoneEditingController.text;
     String _homeaddress= _addressEditingController.text;
     
     http.post(
-        Uri.parse(CONSTANTS.server + "/mytutor1/mobile/php/signup.php"),
+        Uri.parse(CONSTANTS.server + "/mytutor3/mobile/php/signup.php"),
         body: {
           "name": _name,
           "email": _email,
           "password": _password,
+          "phone": _phone,
           "homeaddress": _homeaddress,
           
           

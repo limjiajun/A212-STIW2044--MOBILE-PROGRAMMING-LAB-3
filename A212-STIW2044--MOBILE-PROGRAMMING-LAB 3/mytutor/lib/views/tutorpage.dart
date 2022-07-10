@@ -183,7 +183,7 @@ TextEditingController searchController = TextEditingController();
                                     flex: 6,
                                     child: CachedNetworkImage(
                                       imageUrl: CONSTANTS.server +
-                                          "/mytutor/mobile/assets/tutors/" +
+                                          "/mytutor3/mobile/assets/tutors/" +
                                           tutorList[index].tutorId.toString() +
                                           '.jpg',
                                       fit: BoxFit.cover,
@@ -264,7 +264,7 @@ TextEditingController searchController = TextEditingController();
     curpage = pageno;
     numofpage ?? 1;
     http.post(
-        Uri.parse("${CONSTANTS.server}/mytutor1/mobile/php/load_tutors.php"),
+        Uri.parse("${CONSTANTS.server}/mytutor3/mobile/php/load_tutors.php"),
         body: {
           'pageno': pageno.toString(),
           'search': _search,
@@ -313,7 +313,7 @@ TextEditingController searchController = TextEditingController();
               children: [
                 CachedNetworkImage(
                   imageUrl: CONSTANTS.server +
-                      "/mytutor1/mobile/assets/tutors/" +
+                      "/mytutor3/mobile/assets/tutors/" +
                       tutorList[index].tutorId.toString() +
                       '.jpg',
                   fit: BoxFit.cover,

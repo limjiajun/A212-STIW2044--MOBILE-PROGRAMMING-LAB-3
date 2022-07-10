@@ -10,6 +10,7 @@ import '../constants.dart';
 import '../models/user.dart';
 import '../models/subject.dart';
 
+import 'package:mytutor/views/cartscreen.dart';
 
 import 'mainscreen.dart';
 import 'tutorpage.dart';
@@ -32,6 +33,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
 late int rowcount;
   var numofpage, curpage = 1;
   var color;
+   int cart =0;
 
 TextEditingController searchController = TextEditingController();
   String search = "";
@@ -48,14 +50,19 @@ TextEditingController searchController = TextEditingController();
    
   ];
 
-  
-
+  GlobalKey<RefreshIndicatorState> refreshKey =
+      GlobalKey<RefreshIndicatorState>();
   @override
   void initState() {
     super.initState();
-    _loadSubjects(1, search, "All");
-    
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _loadSubjects(1, search, "All");
+      _loadMyCart();
+    });
+
   }
+
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -76,10 +83,31 @@ TextEditingController searchController = TextEditingController();
             icon: const Icon(Icons.search),
             onPressed: () {
               _loadSearchDialog();
+                },
+          ),
+ TextButton.icon(
+            onPressed: () async {
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (content) => CartScreen(
+                              user: widget.user,
+                            )));
+                _loadSubjects(1, search, "All");
+                _loadMyCart();
+              
             },
-          )
+            icon: const Icon(
+              Icons.shopping_cart,
+              color: Colors.white,
+            ),
+            label: Text(widget.user.cart.toString(),
+                style: const TextStyle(color: Colors.white)),
+          ),
         ],
       ),
+
+       
       drawer: Drawer(
         child: ListView(
           children: [
@@ -134,11 +162,22 @@ TextEditingController searchController = TextEditingController();
             _createDrawerItem(
               icon: Icons.supervised_user_circle,
               text: 'Subscribe',
-              onTap: () {},
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (content) => CartScreen(
+                              user: widget.user,
+                            )));
+                _loadSubjects(1, search, "All");
+                _loadMyCart();
+              },
             ),
+            
             _createDrawerItem(
               icon: Icons.verified_user,
-              text: ' Favourite',
+              text: 'Favourite',
               onTap: () {},
             ),
             _createDrawerItem(
@@ -181,6 +220,11 @@ TextEditingController searchController = TextEditingController();
 
               
               Expanded(
+                  child: RefreshIndicator(
+                key: refreshKey,
+                onRefresh: () async {
+                  _loadSubjects(1, search, "All");
+                },
                   child: GridView.count(
                       crossAxisCount: 2,
                       childAspectRatio: (1 / 1),
@@ -188,9 +232,6 @@ TextEditingController searchController = TextEditingController();
                         return InkWell(
                           splashColor: Colors.amber,
                           onTap: () => {_loadSubjectDetails(index)},
-                          
-                          
-                         
                           child: Card(
                               child: Column(
                             children: [
@@ -198,7 +239,7 @@ TextEditingController searchController = TextEditingController();
                                 flex: 6,
                                 child: CachedNetworkImage(
                                   imageUrl: CONSTANTS.server +
-                                      "/mytutor1/mobile/assets/courses/" +
+                                      "/mytutor3/mobile/assets/courses/" +
                                       subjectList[index].subjectId.toString() +
                                       '.png',
                                   fit: BoxFit.cover,
@@ -209,8 +250,14 @@ TextEditingController searchController = TextEditingController();
                                       const Icon(Icons.error),
                                 ),
                               ),
-                              Flexible(
-                                  flex: 4,
+                            Flexible(
+                                flex: 4,
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                           flex: 4,
                                   child: Column(
                                     children: [
                                       Text(
@@ -221,14 +268,26 @@ TextEditingController searchController = TextEditingController();
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold),
                                       ),
-                                     
-                                      
-                                    ],
-                                  ))
+                                          ]),
+                                        ),
+                                        Expanded(
+                                            flex: 3,
+                                            child: IconButton(
+                                                onPressed: () {
+                                                  _addtocartDialog(index);
+                                                },
+                                                icon: const Icon(
+                                                    Icons.shopping_cart))),
+                                      ],
+                                    ),
+                                  ],
+                                ))
+
+                                  
                             ],
                           )),
                         );
-                      }))),
+                      }))),),
                              
               SizedBox(
                 height: 30,
@@ -282,7 +341,7 @@ TextEditingController searchController = TextEditingController();
       void _loadSubjects(int pageno, String _search, String _types) {
     curpage = pageno;
     http.post(
-        Uri.parse(CONSTANTS.server + "/mytutor1/mobile/php/load_subjects.php"),
+        Uri.parse(CONSTANTS.server + "/mytutor3/mobile/php/load_subjects.php"),
         body: {
           'pageno': pageno.toString(),
           'search': _search,
@@ -331,7 +390,7 @@ TextEditingController searchController = TextEditingController();
               children: [
                 CachedNetworkImage(
                   imageUrl: CONSTANTS.server +
-                      "/mytutor1/mobile/assets/courses/" +
+                      "/mytutor3/mobile/assets/courses/" +
                       subjectList[index].subjectId.toString() +
                       '.png',
                   fit: BoxFit.cover,
@@ -449,5 +508,102 @@ TextEditingController searchController = TextEditingController();
             },
           );
         });
+  }
+  void _addtocartDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20.0))),
+          title: const Text(
+            "Add to cart?",
+            style: TextStyle(),
+          ),
+          content: const Text("Are you sure?", style: TextStyle()),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                "Yes",
+                style: TextStyle(),
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                _addtoCart(index);
+              },
+            ),
+            TextButton(
+              child: const Text(
+                "No",
+                style: TextStyle(),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addtoCart(int index) {
+    http.post(
+        Uri.parse(CONSTANTS.server + "/mytutor3/mobile/php/insert_cart.php"),
+        body: {
+          "email": widget.user.email.toString(),
+          "subjectid": subjectList[index].subjectId.toString(),
+        }).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        return http.Response(
+            'Error', 408); // Request Timeout response status code
+      },
+    ).then((response) {
+      print(response.body);
+      var jsondata = jsonDecode(response.body);
+      if (response.statusCode == 200 && jsondata['status'] == 'success') {
+        print(jsondata['data']['carttotal'].toString());
+        setState(() {
+          widget.user.cart = jsondata['data']['carttotal'].toString();
+        });
+        Fluttertoast.showToast(
+            msg: "Success",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            fontSize: 16.0);
+      } else {
+        Fluttertoast.showToast(
+            msg: "You already added this course to cart.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            fontSize: 16.0);
+      }
+    });
+  }
+
+  void _loadMyCart() {
+    http.post(
+        Uri.parse(CONSTANTS.server + "/mytutor3/mobile/php/load_mycartqty.php"),
+        body: {
+          "email": widget.user.email.toString(),
+        }).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        return http.Response(
+            'Error', 408); // Request Timeout response status code
+      },
+    ).then((response) {
+      print(response.body);
+      var jsondata = jsonDecode(response.body);
+      if (response.statusCode == 200 && jsondata['status'] == 'success') {
+        print(jsondata['data']['carttotal'].toString());
+        setState(() {
+          widget.user.cart = jsondata['data']['carttotal'].toString();
+        });
+      }
+    });
   }
 }

@@ -37,7 +37,7 @@ class Subject {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['subject_id"'] =  subjectId ;
     data['subject_name'] = subjectName;
-    ;
+  
     data['subject_description'] = subjectDescription;
     data['subject_price'] =subjectPrice;
     data['tutor_id"'] =  tutorId;
